@@ -3,7 +3,6 @@ package http
 import (
 	"net/http"
 
-	"github.com/julienschmidt/httprouter"
 	"gitlab.com/martin.kluth1/fserve/api/http/middleware"
 	"gitlab.com/martin.kluth1/fserve/storage"
 )
@@ -16,17 +15,18 @@ type QueryParameters struct {
 }
 
 type Router struct {
-	httprouter.Router
+	http.ServeMux
 	storage storage.Storage
 }
 
 func NewRouter(s storage.Storage) http.Handler {
 	r := &Router{
-		Router:  *httprouter.New(),
-		storage: s,
+		ServeMux: *http.NewServeMux(),
+		storage:  s,
 	}
-	r.GET("/:resource", r.handleDownload)
-	r.PUT("/:resource", r.handleUpload)
+
+	r.HandleFunc("GET /{resource}", r.handleDownload)
+	r.HandleFunc("PUT /{resource}", r.handleUpload)
 
 	c := middleware.ValidateRequest(r)
 	h := middleware.Logging(c)

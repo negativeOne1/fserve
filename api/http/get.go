@@ -6,12 +6,11 @@ import (
 	"net/http"
 	"path/filepath"
 
-	"github.com/julienschmidt/httprouter"
 	"github.com/rs/zerolog/log"
 )
 
-func (r *Router) handleDownload(w http.ResponseWriter, req *http.Request, ps httprouter.Params) {
-	resource := ps.ByName("resource")
+func (r *Router) handleDownload(w http.ResponseWriter, req *http.Request) {
+	resource := req.PathValue("resource")
 
 	reader, err := r.storage.GetFile(resource)
 	if err != nil {

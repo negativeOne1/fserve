@@ -54,7 +54,7 @@ func ValidateRequest(next http.Handler) http.Handler {
 
 		method := req.Method
 		path := req.URL.Path
-		if path[0] == '/' {
+		if len(path) > 0 && path[0] == '/' {
 			path = path[1:]
 		}
 

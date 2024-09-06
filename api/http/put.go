@@ -3,12 +3,10 @@ package http
 import (
 	"bufio"
 	"net/http"
-
-	"github.com/julienschmidt/httprouter"
 )
 
-func (s *Router) handleUpload(w http.ResponseWriter, req *http.Request, ps httprouter.Params) {
-	resource := ps.ByName("resource")
+func (s *Router) handleUpload(w http.ResponseWriter, req *http.Request) {
+	resource := req.PathValue("resource")
 	file, _, err := req.FormFile("file")
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
