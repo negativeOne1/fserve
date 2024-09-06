@@ -16,11 +16,15 @@ type getSignatureOptions struct {
 	Expires   string
 	Method    string
 	Resource  string
+	Host      string
+	Port      string
 }
 
-var DefaultAlgorithm = "HMAC:SHA256"
+var DefaultAlgorithm = "HMAC-SHA256"
 
 func addSignatureFlags(cmd *cobra.Command, o *getSignatureOptions) {
+	cmd.Flags().StringVar(&o.Host, "host", "localhost", "The host to connect to.")
+	cmd.Flags().StringVar(&o.Port, "port", "8080", "The port to connect to.")
 	cmd.Flags().StringVar(&o.Algorithm, "algorithm", DefaultAlgorithm, "The signature algorithm.")
 	cmd.Flags().
 		StringVar(&o.Date, "date", time.Now().UTC().Format(time.RFC3339),
@@ -65,5 +69,5 @@ func createSignature(cmd *cobra.Command, args []string) {
 	// 	hex.EncodeToString(s),
 	// )
 
-	fmt.Printf("http://0.0.0.0:8080/v1/%s?%s\n", opt.Resource, params.Encode())
+	fmt.Printf("http://%s:%s/v1/%s?%s\n", opt.Host, opt.Port, opt.Resource, params.Encode())
 }

@@ -9,7 +9,8 @@ import (
 var (
 	SigningAlgorithm = "HMAC"
 	HashingAlgorithm = "SHA256"
-	DefaultAlgorithm = SigningAlgorithm + ":" + HashingAlgorithm
+	AlgHashSeparator = "-"
+	DefaultAlgorithm = SigningAlgorithm + AlgHashSeparator + HashingAlgorithm
 )
 
 func CreateSignature(algo, date, expires, method, resource string) ([]byte, error) {
@@ -17,7 +18,6 @@ func CreateSignature(algo, date, expires, method, resource string) ([]byte, erro
 		return nil, fmt.Errorf("unsupported algorithm: %s", algo)
 	}
 
-	// TODO: export?
 	mac := hmac.New(sha256.New, []byte("secret"))
 	fmt.Fprintf(mac, "%s:%s:%s:%s", date, expires, method, resource)
 
