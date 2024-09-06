@@ -1,17 +1,35 @@
 package storage
 
-type FileStorage struct{}
+import (
+	"bufio"
+	"os"
+)
 
-func NewFileStorage() *FileStorage {
-	return &FileStorage{}
+type FileStorage struct {
+	basePath string
 }
 
-func (fs *FileStorage) GetFile(path string) ([]byte, error) {
-	return nil, nil
+func NewFileStorage(basePath string) *FileStorage {
+	return &FileStorage{basePath}
 }
 
-func (fs *FileStorage) PutFile(path string, data []byte) error {
-	return nil
+func (fs *FileStorage) GetFile(path string) (*bufio.Reader, error) {
+	f, err := os.Open(fs.basePath + path)
+	if err != nil {
+		return nil, err
+	}
+
+	return bufio.NewReader(f), nil
+}
+
+func (fs *FileStorage) PutFile(path string, reader *bufio.Reader) error {
+	f, err := os.Create(fs.basePath + path)
+	if err != nil {
+		return err
+	}
+
+	_, err = f.ReadFrom(reader)
+	return err
 }
 
 func (fs *FileStorage) DeleteFile(path string) error {

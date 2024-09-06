@@ -7,11 +7,12 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-func Logging(handler http.Handler) http.Handler {
+func Logging(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		start := time.Now()
+		start := time.Now().UTC()
 
-		handler.ServeHTTP(w, r)
+		ww := &responseStats{w: w}
+		next.ServeHTTP(ww, r)
 
 		log.Info().
 			Time("received_time", start).
@@ -19,6 +20,7 @@ func Logging(handler http.Handler) http.Handler {
 			Str("url", r.URL.String()).
 			Str("agent", r.UserAgent()).
 			Dur("latency", time.Since(start)).
+			Int("status", ww.code).
 			Msg("")
 	})
 }

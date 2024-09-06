@@ -3,8 +3,13 @@ package config
 import "github.com/kelseyhightower/envconfig"
 
 type Config struct {
-	Log  LogConfig
-	HTTP HTTPConfig
+	Log     LogConfig
+	HTTP    HTTPConfig
+	Storage StorageConfig
+}
+
+type StorageConfig struct {
+	BasePath string `envconfig:"STORAGE_BASE_PATH" default:"/tmp/"`
 }
 
 type HTTPConfig struct {

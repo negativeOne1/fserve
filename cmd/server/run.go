@@ -12,6 +12,7 @@ import (
 	"gitlab.com/martin.kluth1/fserve/api/http"
 	"gitlab.com/martin.kluth1/fserve/internal/config"
 	"gitlab.com/martin.kluth1/fserve/internal/logging"
+	"gitlab.com/martin.kluth1/fserve/storage"
 )
 
 var (
@@ -52,7 +53,9 @@ func run(cmd *cobra.Command, args []string) {
 		cancel()
 	}()
 
-	router := http.NewRouter()
+	fs := storage.NewFileStorage(cfg.Storage.BasePath)
+
+	router := http.NewRouter(fs)
 	server := http.NewHTTPServer("0.0.0.0", cfg.HTTP.Port, router)
 
 	wg.Add(1)
