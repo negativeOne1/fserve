@@ -65,5 +65,5 @@ func createSignature(cmd *cobra.Command, args []string) {
 	// 	hex.EncodeToString(s),
 	// )
 
-	fmt.Printf("http://0.0.0.0:8080/%s?%s\n", opt.Resource, params.Encode())
+	fmt.Printf("http://0.0.0.0:8080/v1/%s?%s\n", opt.Resource, params.Encode())
 }

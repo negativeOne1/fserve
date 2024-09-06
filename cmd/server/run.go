@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	net "net/http"
 	"os"
 	"os/signal"
 	"sync"
@@ -56,7 +57,10 @@ func run(cmd *cobra.Command, args []string) {
 	fs := storage.NewFileStorage(cfg.Storage.BasePath)
 
 	router := http.NewRouter(fs)
-	server := http.NewHTTPServer("0.0.0.0", cfg.HTTP.Port, router)
+	v1 := net.NewServeMux()
+	v1.Handle("/v1/", net.StripPrefix("/v1", router))
+
+	server := http.NewHTTPServer("0.0.0.0", cfg.HTTP.Port, v1)
 
 	wg.Add(1)
 	go func() {

@@ -28,8 +28,10 @@ func NewRouter(s storage.Storage) http.Handler {
 	r.HandleFunc("GET /{resource}", r.handleDownload)
 	r.HandleFunc("PUT /{resource}", r.handleUpload)
 
-	c := middleware.ValidateRequest(r)
-	h := middleware.Logging(c)
+	c := middleware.CreateChain(
+		middleware.ValidateRequest,
+		middleware.Logging,
+	)
 
-	return h
+	return c(r)
 }
