@@ -77,7 +77,9 @@ func (r *Router) handleGetRequests(w http.ResponseWriter, req *http.Request, ps 
 		return
 	}
 
-	reader, err := r.storage.GetFile(ps.ByName("resource"))
+	resource := ps.ByName("resource")
+
+	reader, err := r.storage.GetFile(resource)
 	if err != nil {
 		log.Error().Err(err).Msg("Failed to get file")
 		w.WriteHeader(http.StatusNotFound)
@@ -85,7 +87,7 @@ func (r *Router) handleGetRequests(w http.ResponseWriter, req *http.Request, ps 
 	}
 
 	ct := "application/octet-stream"
-	ext := filepath.Ext(ps.ByName("resource"))
+	ext := filepath.Ext(resource)
 	if m := mime.TypeByExtension(ext); m != "" {
 		ct = m
 	}
