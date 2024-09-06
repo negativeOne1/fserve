@@ -28,7 +28,7 @@ func (r *responseStats) Write(p []byte) (n int, err error) {
 	}
 
 	if r.buf == nil {
-		r.buf = p
+		r.buf = append(r.buf, p...)
 	}
 
 	return r.w.Write(p)
