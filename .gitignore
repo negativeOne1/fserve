@@ -1,0 +1,8 @@
+.env
+.envrc
+coverage.out
+.vscode/
+/build
+/app
+/tmp
+/bin
