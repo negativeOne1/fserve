@@ -13,6 +13,7 @@ import (
 	"gitlab.com/martin.kluth1/fserve/api/http"
 	"gitlab.com/martin.kluth1/fserve/internal/config"
 	"gitlab.com/martin.kluth1/fserve/internal/logging"
+	"gitlab.com/martin.kluth1/fserve/signature"
 	"gitlab.com/martin.kluth1/fserve/storage"
 )
 
@@ -56,7 +57,9 @@ func run(cmd *cobra.Command, args []string) {
 
 	fs := storage.NewFileStorage(cfg.Storage.BasePath)
 
-	router := http.NewRouter(fs)
+	hmacValidator := signature.NewHMACValidator(cfg.Secret)
+
+	router := http.NewRouter(fs, hmacValidator)
 	v1 := net.NewServeMux()
 	v1.Handle("/v1/", net.StripPrefix("/v1", router))
 

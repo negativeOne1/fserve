@@ -20,6 +20,8 @@ type getSignatureOptions struct {
 	Port      string
 }
 
+var ISO8601 = "20060102T150405Z0700"
+
 var DefaultAlgorithm = "HMAC-SHA256"
 
 func addSignatureFlags(cmd *cobra.Command, o *getSignatureOptions) {
@@ -27,7 +29,7 @@ func addSignatureFlags(cmd *cobra.Command, o *getSignatureOptions) {
 	cmd.Flags().StringVar(&o.Port, "port", "8080", "The port to connect to.")
 	cmd.Flags().StringVar(&o.Algorithm, "algorithm", DefaultAlgorithm, "The signature algorithm.")
 	cmd.Flags().
-		StringVar(&o.Date, "date", time.Now().UTC().Format(time.RFC3339),
+		StringVar(&o.Date, "date", time.Now().UTC().Format(ISO8601),
 			"The date and time the request was signed.")
 	cmd.Flags().StringVar(&o.Expires, "expires", "", "The date and time the request expires.")
 	cmd.Flags().StringVar(&o.Method, "method", "", "The HTTP method.")
@@ -42,6 +44,7 @@ var createSignatureCmd = &cobra.Command{
 
 func createSignature(cmd *cobra.Command, args []string) {
 	s, err := signature.CreateSignature(
+		cfg.Secret,
 		opt.Algorithm,
 		opt.Date,
 		opt.Expires,

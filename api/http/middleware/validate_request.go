@@ -1,8 +1,6 @@
 package middleware
 
 import (
-	"crypto/hmac"
-	"encoding/hex"
 	"errors"
 	"net/http"
 	"strconv"
@@ -20,8 +18,10 @@ type QueryParameters struct {
 	Signature string `schema:"Fs-Signature"`
 }
 
+var ISO8601 = "20060102T150405Z0700"
+
 func checkIfLinkExpired(date, expires string) error {
-	d, err := time.Parse(time.RFC3339, date)
+	d, err := time.Parse(ISO8601, date)
 	if err != nil {
 		return err
 	}
@@ -38,55 +38,40 @@ func checkIfLinkExpired(date, expires string) error {
 	return nil
 }
 
-func ValidateRequest(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-		q := req.URL.Query()
+func ValidateRequest(v signature.Validator) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+			q := req.URL.Query()
 
-		decoder := schema.NewDecoder()
+			decoder := schema.NewDecoder()
 
-		var p QueryParameters
-		err := decoder.Decode(&p, q)
-		if err != nil {
-			log.Debug().Err(err).Msg("Failed to decode query parameters")
-			w.WriteHeader(http.StatusUnauthorized)
-			return
-		}
+			var p QueryParameters
+			err := decoder.Decode(&p, q)
+			if err != nil {
+				log.Debug().Err(err).Msg("Failed to decode query parameters")
+				w.WriteHeader(http.StatusUnauthorized)
+				return
+			}
 
-		method := req.Method
-		path := req.URL.Path
-		if len(path) > 0 && path[0] == '/' {
-			path = path[1:]
-		}
+			method := req.Method
+			path := req.URL.Path
+			if len(path) > 0 && path[0] == '/' {
+				path = path[1:]
+			}
 
-		h, err := signature.CreateSignature(p.Algorithm, p.Date, p.Expires, method, path)
-		if err != nil {
-			log.Debug().Err(err).Msg("Failed to create signature")
-			w.WriteHeader(http.StatusUnauthorized)
-			return
-		}
+			if err := v.IsValid(p.Algorithm, p.Date, p.Expires, method, path, p.Signature); err != nil {
+				log.Debug().Err(err).Msg("Failed to validate signature")
+				w.WriteHeader(http.StatusUnauthorized)
+				return
+			}
 
-		hash, err := hex.DecodeString(p.Signature)
-		if err != nil {
-			log.Debug().Err(err).Msg("Failed to decode signature")
-			w.WriteHeader(http.StatusUnauthorized)
-			return
-		}
+			if err := checkIfLinkExpired(p.Date, p.Expires); err != nil {
+				log.Error().Err(err).Msg("Link expired")
+				w.WriteHeader(http.StatusUnauthorized)
+				return
+			}
 
-		if !hmac.Equal(hash, h) {
-			log.Debug().
-				Interface("params", p).
-				Str("signature", hex.EncodeToString(h)).
-				Msg("Signature mismatch")
-			w.WriteHeader(http.StatusUnauthorized)
-			return
-		}
-
-		if err := checkIfLinkExpired(p.Date, p.Expires); err != nil {
-			log.Error().Err(err).Msg("Link expired")
-			w.WriteHeader(http.StatusUnauthorized)
-			return
-		}
-
-		next.ServeHTTP(w, req)
-	})
+			next.ServeHTTP(w, req)
+		})
+	}
 }

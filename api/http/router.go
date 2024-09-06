@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"gitlab.com/martin.kluth1/fserve/api/http/middleware"
+	"gitlab.com/martin.kluth1/fserve/signature"
 	"gitlab.com/martin.kluth1/fserve/storage"
 )
 
@@ -19,7 +20,7 @@ type Router struct {
 	storage storage.Storage
 }
 
-func NewRouter(s storage.Storage) http.Handler {
+func NewRouter(s storage.Storage, v signature.Validator) http.Handler {
 	r := &Router{
 		ServeMux: *http.NewServeMux(),
 		storage:  s,
@@ -29,7 +30,7 @@ func NewRouter(s storage.Storage) http.Handler {
 	r.HandleFunc("PUT /{resource}", r.handleUpload)
 
 	c := middleware.CreateChain(
-		middleware.ValidateRequest,
+		middleware.ValidateRequest(v),
 		middleware.Logging,
 	)
 

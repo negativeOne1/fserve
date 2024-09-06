@@ -6,6 +6,7 @@ type Config struct {
 	Log     LogConfig
 	HTTP    HTTPConfig
 	Storage StorageConfig
+	Secret  string `envconfig:"SECRET"`
 }
 
 type StorageConfig struct {
@@ -24,7 +25,7 @@ type LogConfig struct {
 func ReadConfig() (Config, error) {
 	c := Config{}
 
-	err := envconfig.Process("", &c)
+	err := envconfig.Process("FSERVE", &c)
 	if err != nil {
 		return c, err
 	}
