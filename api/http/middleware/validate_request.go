@@ -3,7 +3,10 @@ package middleware
 import (
 	"crypto/hmac"
 	"encoding/hex"
+	"errors"
 	"net/http"
+	"strconv"
+	"time"
 
 	"github.com/gorilla/schema"
 	"github.com/rs/zerolog/log"
@@ -17,7 +20,25 @@ type QueryParameters struct {
 	Signature string `schema:"Fs-Signature"`
 }
 
-func CheckSignature(next http.Handler) http.Handler {
+func checkIfLinkExpired(date, expires string) error {
+	d, err := time.Parse(time.RFC3339, date)
+	if err != nil {
+		return err
+	}
+
+	e, err := strconv.ParseInt(expires, 10, 64)
+	if err != nil {
+		return err
+	}
+
+	if d.Add(time.Duration(e) * time.Second).Before(time.Now().UTC()) {
+		return errors.New("Link expired")
+	}
+
+	return nil
+}
+
+func ValidateRequest(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		q := req.URL.Query()
 
@@ -56,6 +77,12 @@ func CheckSignature(next http.Handler) http.Handler {
 				Interface("params", p).
 				Str("signature", hex.EncodeToString(h)).
 				Msg("Signature mismatch")
+			w.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+
+		if err := checkIfLinkExpired(p.Date, p.Expires); err != nil {
+			log.Error().Err(err).Msg("Link expired")
 			w.WriteHeader(http.StatusUnauthorized)
 			return
 		}

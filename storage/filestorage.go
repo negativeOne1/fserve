@@ -27,6 +27,7 @@ func (fs *FileStorage) PutFile(path string, reader *bufio.Reader) error {
 	if err != nil {
 		return err
 	}
+	defer f.Close()
 
 	_, err = f.ReadFrom(reader)
 	return err
