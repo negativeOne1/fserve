@@ -7,10 +7,12 @@ import (
 	"os/signal"
 	"sync"
 	"syscall"
+	"time"
 
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
 	"gitlab.com/martin.kluth1/fserve/api/http"
+	"gitlab.com/martin.kluth1/fserve/cache"
 	"gitlab.com/martin.kluth1/fserve/internal/config"
 	"gitlab.com/martin.kluth1/fserve/internal/logging"
 	"gitlab.com/martin.kluth1/fserve/signature"
@@ -58,8 +60,9 @@ func run(cmd *cobra.Command, args []string) {
 	fs := storage.NewFileStorage(cfg.Storage.BasePath)
 
 	hmacValidator := signature.NewHMACValidator(cfg.Secret)
+	memCache := cache.NewMemCache(5 * time.Second)
 
-	router := http.NewRouter(fs, hmacValidator)
+	router := http.NewRouter(fs, memCache, hmacValidator)
 	v1 := net.NewServeMux()
 	v1.Handle("/v1/", net.StripPrefix("/v1", router))
 
