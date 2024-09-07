@@ -1,9 +1,18 @@
 package storage
 
-import "bufio"
+import (
+	"bufio"
+	"io"
+	"time"
+)
+
+const (
+	NeverExpires time.Duration = -1
+	DefaultTTL   time.Duration = 1 * time.Minute
+)
 
 type Storage interface {
-	GetFile(path string) (*bufio.Reader, error)
-	PutFile(path string, in *bufio.Reader) error
-	DeleteFile(path string) error
+	Get(path string) (*bufio.Reader, error)
+	Save(path string, in io.Reader) error
+	Delete(path string) error
 }

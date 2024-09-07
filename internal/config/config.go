@@ -10,7 +10,7 @@ type Config struct {
 }
 
 type StorageConfig struct {
-	BasePath string `envconfig:"STORAGE_BASE_PATH" default:"/tmp/"`
+	BasePath string `envconfig:"STORAGE_BASE_PATH" default:"/tmp/fserve"`
 }
 
 type HTTPConfig struct {

@@ -57,7 +57,15 @@ func run(cmd *cobra.Command, args []string) {
 		cancel()
 	}()
 
-	fs := storage.NewFileStorage(cfg.Storage.BasePath)
+	defaultExpires := 60 * time.Second
+	cleanupInterval := 5 * time.Second
+	fs, err := storage.NewFileStorage(
+		cfg.Storage.BasePath, defaultExpires, cleanupInterval,
+	)
+	if err != nil {
+		log.Fatal().Err(err).Msg("Failed to create file storage")
+		return
+	}
 
 	hmacValidator := signature.NewHMACValidator(cfg.Secret)
 	memCache := cache.NewMemCache(5 * time.Second)

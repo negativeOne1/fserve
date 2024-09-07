@@ -12,7 +12,7 @@ import (
 func (r *Router) handleDownload(w http.ResponseWriter, req *http.Request) {
 	resource := req.PathValue("resource")
 
-	reader, err := r.storage.GetFile(resource)
+	reader, err := r.storage.Get(resource)
 	if err != nil {
 		log.Error().Err(err).Msg("Failed to get file")
 		w.WriteHeader(http.StatusNotFound)
